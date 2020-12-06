@@ -1,0 +1,11 @@
+domain: redhat.com
+layout: go.kubebuilder.io/v2
+projectName: chaosoperator
+repo: chaosoperator
+resources:
+- group: cache
+  kind: Chaoskube
+  version: v1alpha1
+version: 3-alpha
+plugins:
+  go.sdk.operatorframework.io/v2-alpha: {}

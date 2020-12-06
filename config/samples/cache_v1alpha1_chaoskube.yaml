@@ -1,0 +1,8 @@
+apiVersion: cache.redhat.com/v1alpha1
+kind: Chaoskube
+metadata:
+  name: chaoskube-sample
+spec:
+  # Add fields here
+  size: 1
+

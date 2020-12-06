@@ -1,0 +1,20 @@
+# permissions for end users to view chaoskubes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: chaoskube-viewer-role
+rules:
+- apiGroups:
+  - cache.redhat.com
+  resources:
+  - chaoskubes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - cache.redhat.com
+  resources:
+  - chaoskubes/status
+  verbs:
+  - get

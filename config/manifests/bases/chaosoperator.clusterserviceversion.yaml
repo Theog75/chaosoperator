@@ -1,0 +1,46 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+    operators.operatorframework.io/builder: operator-sdk-v1.2.0
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
+  name: chaosoperator.vX.Y.Z
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: Chaoskube is the Schema for the chaoskubes API
+      displayName: Chaoskube
+      kind: Chaoskube
+      name: chaoskubes.cache.redhat.com
+      version: v1alpha1
+  description: chaoskube operator
+  displayName: chaoskube
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - chaoskube
+  links:
+  - name: Chaosoperator
+    url: https://chaosoperator.domain
+  maturity: alpha
+  provider:
+    name: Liran Cohen
+  version: 0.0.0
