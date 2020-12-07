@@ -36,12 +36,17 @@ spec:
         spec:
           description: ChaoskubeSpec defines the desired state of Chaoskube
           properties:
+            args:
+              items:
+                type: string
+              type: array
             size:
               description: Foo is an example field of Chaoskube. Edit Chaoskube_types.go
                 to remove/update Foo string `json:"foo,omitempty"`
               format: int32
               type: integer
           required:
+          - args
           - size
           type: object
         status:

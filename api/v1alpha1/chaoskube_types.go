@@ -30,7 +30,8 @@ type ChaoskubeSpec struct {
 
 	// Foo is an example field of Chaoskube. Edit Chaoskube_types.go to remove/update
 	// Foo string `json:"foo,omitempty"`
-	Size int32 `json:"size"`
+	Size int32    `json:"size"`
+	Args []string `json:"args"`
 }
 
 // ChaoskubeStatus defines the observed state of Chaoskube

@@ -19,10 +19,12 @@ package controllers
 import (
 	"context"
 	"reflect"
+	"strings"
 
 	"github.com/go-logr/logr"
 
 	// v1 "k8s.io/api/apps/v1"
+	"k8s.io/api/rbac/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -70,10 +72,28 @@ func (r *ChaoskubeReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
+	foundrb := &v1beta1.ClusterRoleBinding{}
+	errrb := r.Get(ctx, types.NamespacedName{Name: chaoskube.Name + "-" + chaoskube.Namespace + "-chaos", Namespace: chaoskube.Namespace}, foundrb)
+	// errrb := r.Get(ctx, types.NamespacedName{Name: chaoskube.Name, Namespace: chaoskube.Namespace}, foundrb)
+	if errrb != nil && errors.IsNotFound(errrb) {
+		//rolebindingForChaoskube m.Name + "-" + m.Namespace + "-chaos"
+		rol := r.rolebindingForChaoskube(chaoskube)
+		log.Info("Creating a new ClusterRoleBinding", "ClusterRoleBinding.Namespace", rol.Namespace, "ClusterRoleBinding.Name", rol.Name)
+		err = r.Create(ctx, rol)
+		if err != nil {
+			log.Error(err, "Failed to create new ClusterRoleBinding", "ClusterRoleBinding.Namespace", rol.Namespace, "ClusterRoleBinding.Name", rol.Name)
+			return ctrl.Result{}, err
+		}
+	} else {
+		log.Info("Error creating CluesterRoleBinding ", errrb)
+	}
+
 	// Check if the deployment already exists, if not create a new one
 	found := &v1.Deployment{}
 	err = r.Get(ctx, types.NamespacedName{Name: chaoskube.Name, Namespace: chaoskube.Namespace}, found)
+
 	if err != nil && errors.IsNotFound(err) {
+
 		// Define a new deployment
 		dep := r.deploymentForChaoskube(chaoskube)
 		log.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
@@ -136,11 +156,43 @@ func (r *ChaoskubeReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
+func (r *ChaoskubeReconciler) rolebindingForChaoskube(m *cachev1alpha1.Chaoskube) *v1beta1.ClusterRoleBinding {
+
+	dep := &v1beta1.ClusterRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      m.Name + "-" + m.Namespace + "-chaos",
+			Namespace: m.Namespace,
+		},
+		Subjects: []v1beta1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      "default",
+				Namespace: m.Namespace,
+			},
+		},
+		RoleRef: v1beta1.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "ClusterRole",
+			Name:     "cluster-admin",
+		},
+	}
+	// Set chaoskube instance as the owner and controller
+	ctrl.SetControllerReference(m, dep, r.Scheme)
+	return dep
+}
+
 // deploymentForchaoskube returns a chaoskube Deployment object
 func (r *ChaoskubeReconciler) deploymentForChaoskube(m *cachev1alpha1.Chaoskube) *appsv1.Deployment {
 	ls := labelsForChaoskube(m.Name)
+	var sanitizedargs []string
 	replicas := m.Spec.Size
+	for _, arg := range m.Spec.Args {
+		if !strings.Contains(arg, "namespaces") {
+			sanitizedargs = append(sanitizedargs, arg)
+		}
 
+	}
+	sanitizedargs = append(sanitizedargs, "--namespaces="+m.Namespace)
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      m.Name,
@@ -164,6 +216,7 @@ func (r *ChaoskubeReconciler) deploymentForChaoskube(m *cachev1alpha1.Chaoskube)
 						// 	ContainerPort: 11211,
 						// 	Name:          "chaoskube",
 						// }},
+						Args: sanitizedargs,
 					}},
 				},
 			},

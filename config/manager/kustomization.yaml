@@ -4,4 +4,5 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
 - name: controller
-  newName: docker.rct.co.il/chaos-operator-0.0.1
+  newName: docker.rct.co.il/chaoskube
+  newTag: v0.2.7

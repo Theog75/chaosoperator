@@ -1,8 +1,14 @@
 apiVersion: cache.redhat.com/v1alpha1
 kind: Chaoskube
 metadata:
-  name: chaoskube-sample
+  name: chaoskube-nightly
 spec:
   # Add fields here
   size: 1
+  args:
+  - --interval=1m
+  - --namespaces=sosivio-test
+  - --minimum-age=5m
+  - --no-dry-run
+
 
