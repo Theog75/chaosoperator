@@ -18,12 +18,15 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/go-logr/logr"
 
 	// v1 "k8s.io/api/apps/v1"
+
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/api/rbac/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -72,10 +75,11 @@ func (r *ChaoskubeReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
-	foundrb := &v1beta1.ClusterRoleBinding{}
-	errrb := r.Get(ctx, types.NamespacedName{Name: chaoskube.Name + "-" + chaoskube.Namespace + "-chaos", Namespace: chaoskube.Namespace}, foundrb)
+	foundrb := &rbacv1.ClusterRoleBinding{}
+	errrb := r.Get(ctx, types.NamespacedName{Name: chaoskube.Name + "-" + chaoskube.Namespace + "-chaos", Namespace: ""}, foundrb)
 	// errrb := r.Get(ctx, types.NamespacedName{Name: chaoskube.Name, Namespace: chaoskube.Namespace}, foundrb)
 	if errrb != nil && errors.IsNotFound(errrb) {
+		fmt.Println(errrb.Error(), "----------------")
 		//rolebindingForChaoskube m.Name + "-" + m.Namespace + "-chaos"
 		rol := r.rolebindingForChaoskube(chaoskube)
 		log.Info("Creating a new ClusterRoleBinding", "ClusterRoleBinding.Namespace", rol.Namespace, "ClusterRoleBinding.Name", rol.Name)
@@ -84,8 +88,9 @@ func (r *ChaoskubeReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			log.Error(err, "Failed to create new ClusterRoleBinding", "ClusterRoleBinding.Namespace", rol.Namespace, "ClusterRoleBinding.Name", rol.Name)
 			return ctrl.Result{}, err
 		}
-	} else {
-		log.Info("Error creating CluesterRoleBinding ", errrb)
+		// } else {
+		// 	log.Info("Failed to get ClusterRoleBinding")
+		// 	return ctrl.Result{}, errrb
 	}
 
 	// Check if the deployment already exists, if not create a new one
