@@ -26,5 +26,28 @@ The above example will instantiate a chaoskube instance in the chaoskube-nightly
 1. clone this git repo
 3. run the build.sh script as cluster-admin
 
+## Using the Operator
 
+create a yaml file with the appropriate CR for example do vim to chaosnightly.yaml and paste the following yaml into it:
+```
+apiVersion: cache.redhat.com/v1alpha1
+kind: Chaoskube
+metadata:
+  name: chaoskube-nightly
+spec:
+  # Add fields here
+  size: 1
+  args:
+  - --interval=1m
+  - --namespaces=sosivio-test
+  - --minimum-age=5m
+  - --no-dry-run
+```
 
+next run:
+
+```
+kubectl apply -f chaosnightly.yaml
+```
+
+the chaoskube-nightly pod should be running in the relevant namespace and start terminating Pods.
